@@ -88,6 +88,20 @@ def delete_category(category_id):
         return {"error": str(error)}, 500
 
 
+@app.delete("/product/<int:product_id>")
+def delete_product(product_id):
+    try:
+        success, message, product = ProductsTable.delete(product_id)
+        if not success:
+            if product is None:
+                return {"message": "Product not found."}, 404
+            else:
+                return {"error": message}, 400
+        return {"message": "Product deleted."}, 200
+    except sqlite3.Error as error:
+        return {"error": str(error)}, 500
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     close_db()

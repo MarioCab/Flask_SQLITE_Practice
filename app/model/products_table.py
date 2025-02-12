@@ -179,15 +179,8 @@ class ProductsTable:
             return False, "Product not found.", None
 
         db = get_db()
-        query = "SELECT * FROM PRODUCTS WHERE CategoryID = ?"
-        data = [category_id]
-        result = db.execute(query, data)
-        product = result.fetchone()
-        if product is not None:
-            return False, "Category has products.", category
-
-        query = "DELETE FROM CATEGORIES WHERE CategoryID = ?"
-        data = [category_id]
+        query = "DELETE FROM PRODUCTS WHERE ProductID = ?"
+        data = [product_id]
         db.execute(query, data)
         db.commit()
-        return True, "The category has been deleted.", category
+        return True, "The product has been deleted.", product
