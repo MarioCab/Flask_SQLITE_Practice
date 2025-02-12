@@ -102,6 +102,18 @@ def delete_product(product_id):
         return {"error": str(error)}, 500
 
 
+@app.put("/product/<int:product_id>")
+def update_product(product_id):
+    product_data = request.get_json()
+    try:
+        success, message, product = ProductsTable.update(product_id, product_data)
+        if not success:
+            return {"error": message}, 400
+        return product, 201
+    except sqlite3.Error as error:
+        return {"error": str(error)}, 500
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     close_db()

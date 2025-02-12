@@ -153,11 +153,11 @@ class ProductsTable:
         """
         data = [product_name, product_code, category_id, price]
         db.execute(query, data)
-        product = ProductsTable.get_by_name(product_name)
+        product = ProductsTable.get_by_id(product_name)
         db.commit()
         return True, "The product has been inserted.", product
 
-    @staticmethod  #### NEED TO WORK ON THIS
+    @staticmethod
     def delete(product_id):
         """Deletes the row with the given id from the products table.
 
@@ -184,3 +184,53 @@ class ProductsTable:
         db.execute(query, data)
         db.commit()
         return True, "The product has been deleted.", product
+
+    @staticmethod
+    def update(product_id, product_data):
+        """Updates the row with the given id from the products table or creates a new one if it doesn't exist.
+
+        Raises:
+            sqlite3.Error: If the database operations fail
+
+        Args:
+            product_id (int): the id of the product to be deleted
+
+        tuple: (success, message, product) where
+                success (bool): True if the product has been updated or created
+                message (str): "The product has been updated." or "The product has been created." if success is
+                    True; an error message if success is False
+                product (dict): the product with the specified identifier
+                    product_id; None if no such product exists
+        """
+        db = get_db()
+
+        product = ProductsTable.get_by_id(product_id)
+        if product is None:
+            ProductsTable.insert(product_data)
+            product = ProductsTable.get_by_id(product_id)
+            return True, "The product has been created", product
+
+        product = ProductsTable.get_by_code(product_data["product_code"])
+        if product is not None:
+            return False, "Product code exists already.", None
+
+        else:
+            product = ProductsTable.get_by_id(product_id)
+            data = [
+                product_data["product_name"],
+                product_data["product_code"],
+                product_data["category_id"],
+                product_data["price"],
+                product_id,
+            ]
+            query = """
+                UPDATE PRODUCTS
+                SET ProductName = ?, ProductCode = ?, CategoryID = ?, Price = ?
+                WHERE ProductID = ?
+
+            """
+            db.execute(query, data)
+            db.commit()
+            product = ProductsTable.get_by_id(product_id)
+
+            return True, "The product has been updated.", product
