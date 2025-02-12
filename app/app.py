@@ -39,6 +39,17 @@ def get_category(category_id):
         return {"error": str(error)}, 500
 
 
+@app.get("/product/<int:product_id>")
+def get_product(product_id):
+    try:
+        product = ProductsTable.get_by_id(product_id)
+        if product is None:
+            return {"message": "Product not found."}, 404
+        return product, 200
+    except sqlite3.Error as error:
+        return {"error": str(error)}, 500
+
+
 @app.post("/category")
 def create_category():
     category_data = request.get_json()
@@ -47,6 +58,18 @@ def create_category():
         if not success:
             return {"error": message}, 400
         return category, 201
+    except sqlite3.Error as error:
+        return {"error": str(error)}, 500
+
+
+@app.post("/product")
+def create_product():
+    product_data = request.get_json()
+    try:
+        success, message, product = ProductsTable.insert(product_data)
+        if not success:
+            return {"error": message}, 400
+        return product, 201
     except sqlite3.Error as error:
         return {"error": str(error)}, 500
 
