@@ -66,6 +66,29 @@ class ProductsTable:
         return product
 
     @staticmethod
+    def get_by_code(product_code):
+        """Gets the row with the given product code from the products table.
+
+        Raises:
+            sqlite3.Error: If the database operations fail
+
+        Args:
+            product_code (str): the code of the product to be returned
+
+        Returns:
+            dict: the product with the specified code; None if no such
+                    product exists
+        """
+        db = get_db()
+        query = "SELECT * FROM PRODUCTS WHERE ProductCode = ?"
+        data = [product_code]
+        result = db.execute(query, data)
+        product = result.fetchone()
+        if product is not None:
+            product = dict(product)
+        return product
+
+    @staticmethod
     def insert(product_data):
         """Inserts the specified product into the products table.
 
@@ -83,6 +106,7 @@ class ProductsTable:
                     True; an error message if success is False
                 product (dict): the inserted product; None if success is False
         """
+        ## Validation for product_name field
         if "product_name" not in product_data:
             return False, "Product name is missing.", None
 
@@ -94,12 +118,40 @@ class ProductsTable:
         if product is not None:
             return False, "Product name exists already.", None
 
+        ## Validation for product_code field
+        if "product_code" not in product_data:
+            return False, "Product code is missing.", None
+
+        product_code = product_data["product_code"]
+        if len(product_code) == 0:
+            return False, "Product code is empty.", None
+
+        product = ProductsTable.get_by_code(product_code)
+        if product is not None:
+            return False, "Product code exists already.", None
+
+        ## Validation for category_id field
+        if "category_id" not in product_data:
+            return False, "Category id is missing.", None
+
+        category_id = product_data["category_id"]
+        if category_id <= 0:
+            return False, "Category id is empty.", None
+
+        ## Validation for price field
+        if "price" not in product_data:
+            return False, "Price is missing.", None
+
+        price = product_data["price"]
+        if price <= 0:
+            return False, "Price is empty.", None
+
         db = get_db()
         query = """
-            INSERT INTO PRODUCTS (ProductName) 
-                VALUES (?)
+            INSERT INTO PRODUCTS (ProductName, ProductCode, CategoryID, Price) 
+                VALUES (?,?,?,?)
         """
-        data = [product_name]
+        data = [product_name, product_code, category_id, price]
         db.execute(query, data)
         product = ProductsTable.get_by_name(product_name)
         db.commit()
