@@ -107,12 +107,10 @@ class ProductsTable:
                 product (dict): the inserted product; None if success is False
         """
         ## Validation for product_name field
-        if "product_name" not in product_data:
-            return False, "Product name is missing.", None
+        if "product_name" not in product_data or not product_data["product_name"]:
+            return False, "Product name is missing or empty.", None
 
         product_name = product_data["product_name"]
-        if len(product_name) == 0:
-            return False, "Product name is empty.", None
 
         product = ProductsTable.get_by_name(product_name)
         if product is not None:
@@ -153,8 +151,9 @@ class ProductsTable:
         """
         data = [product_name, product_code, category_id, price]
         db.execute(query, data)
-        product = ProductsTable.get_by_id(product_name)
         db.commit()
+        last_id = db.execute("SELECT LAST_INSERT_ROWID()").fetchone()[0]
+        product = ProductsTable.get_by_id(last_id)
         return True, "The product has been inserted.", product
 
     @staticmethod
@@ -206,13 +205,7 @@ class ProductsTable:
 
         product = ProductsTable.get_by_id(product_id)
         if product is None:
-            ProductsTable.insert(product_data)
-            product = ProductsTable.get_by_id(product_id)
-            return True, "The product has been created", product
-
-        product = ProductsTable.get_by_code(product_data["product_code"])
-        if product is not None:
-            return False, "Product code exists already.", None
+            return False, "Product code doesn't exist.", None
 
         else:
             product = ProductsTable.get_by_id(product_id)
